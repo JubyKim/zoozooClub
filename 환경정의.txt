@@ -1,0 +1,26 @@
+1. 	팀즈봇 설치 
+   	에뮬레이터 
+   	https://github.com/Microsoft/BotFramework-Emulator/releases
+
+2.  vscode 설치
+    확장모듈 - gitrea 설치    
+3.  git 설치
+    - git user명, email 설정 (google참고)
+    git config --global http.sslVerify false
+    git remote set-url origin https://gitrea.nonaday.synology.me/JooJuClub/AI_CHATBOT_DTS.git
+
+4.  python 설치
+5. 	pip install -r requirements.txt
+6. 	preprocess_generic_document.py 실행
+    - RAG 생성을 위한 기초 데이터 생성
+7. 	app.py 실행
+    - 최초생성시 RAG데이터 생성
+8. 	팀즈봇에서 채팅 시작
+    endpoint url : http://localhost:3978/api/messages
+
+* 집에서 gpu활용시
+pip uninstall torch
+pip install torch --index-url https://download.pytorch.org/whl/cu118
+
+
+

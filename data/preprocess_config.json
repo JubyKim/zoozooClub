@@ -1,0 +1,15 @@
+{
+  "source_name": "인사규정.txt",
+  "cleaning_rules": [
+    {"type": "startswith", "pattern": "*본 문서의 저작권은"},
+    {"type": "contains", "pattern": "--------------------"},
+    {"type": "exact", "pattern": "끝."}
+  ],
+  "chapter_regex": "^제\\s*(\\d+)\\s*장\\s*(.+)",
+  "article_regex": "^제\\s*(\\d+)\\s*조\\s*\\((.+?)\\)",
+  "chapter_format": "제 {} 장 {}",
+  "article_format": "제 {} 조",
+  "reguser": "이용주",
+  "regdate": "20150101",
+  "uptdate": "20230101"
+}

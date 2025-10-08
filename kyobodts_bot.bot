@@ -1,0 +1,19 @@
+{
+    "name": "kyobodts_bot",
+    "description": "",
+    "services": [
+        {
+            "type": "endpoint",
+            "name": "http://localhost:3978/api/messages",
+            "id": "c58687c0-9d09-11f0-9e6c-f9664a51a1b8",
+            "appId": "",
+            "appPassword": "",
+            "tenantId": "",
+            "endpoint": "http://localhost:3978/api/messages"
+        }
+    ],
+    "padlock": "",
+    "version": "2.0",
+    "path": "C:\\workspace\\AI_ChatBot_DTS\\kyobodts_bot.bot",
+    "overrides": null
+}

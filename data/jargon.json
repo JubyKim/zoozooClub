@@ -1,0 +1,18 @@
+{
+    "RFP": {
+        "definition": "Request For Proposal의 약자로, 제안 요청서를 의미합니다. 고객의 요구사항을 정리하여 공개적으로 제안을 요청하는 문서입니다.",
+        "link": "https://ko.wikipedia.org/wiki/%EC%A0%9C%EC%95%88%EC%9A%94%EC%B2%AD%EC%84%9C"
+    },
+    "RFI": {
+        "definition": "Request For Information의 약자로, 정보 요청서를 의미합니다. 특정 프로젝트나 제품에 대한 정보를 수집하기 위해 잠재적 공급업체에 보내는 문서입니다.",
+        "link": "https://en.wikipedia.org/wiki/Request_for_information"
+    },
+    "PMO": {
+        "definition": "Project Management Office의 약자로, 프로젝트 관리 조직을 의미합니다. 조직 내 프로젝트들의 표준화, 관리, 감독을 담당합니다.",
+        "link": "https://ko.wikipedia.org/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8_%EA%B4%80%EB%A6%AC_%EC%A1%B0%EC%A7%81"
+    },
+    "PoC": {
+        "definition": "Proof of Concept의 약자로, 개념 증명을 의미합니다. 새로운 기술이나 아이디어가 실제로 실현 가능한지 검증하는 초기 단계의 시연 또는 파일럿 프로젝트입니다.",
+        "link": "https://ko.wikipedia.org/wiki/%EA%B0œ%EB%_%EC%A6%EB%AA…"
+    }
+}

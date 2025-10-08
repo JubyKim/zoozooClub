@@ -1,0 +1,411 @@
+# =============================================================================
+# 교보DTS AI ChatBot 프로젝트 .gitignore
+# =============================================================================
+
+# Python
+# -----------------------------------------------------------------------------
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Virtual Environments
+# -----------------------------------------------------------------------------
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# IDE & Editors
+# -----------------------------------------------------------------------------
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# OS Generated Files
+# -----------------------------------------------------------------------------
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# 프로젝트별 설정 및 민감 정보
+# -----------------------------------------------------------------------------
+# 환경 변수 및 설정 파일
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+
+# 비밀 키 및 인증 정보
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# 설정 파일 (로컬 개발용)
+config.local.py
+local_settings.py
+
+# AI/ML 모델 및 데이터
+# -----------------------------------------------------------------------------
+# 학습된 모델 파일
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.pb
+*.onnx
+*.tflite
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# 대용량 데이터 파일
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.arrow
+
+# 이미지/비디오 파일
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.svg
+*.webp
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+
+# 오디오 파일
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+
+# 압축 파일
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bz2
+*.xz
+
+# 데이터베이스 및 캐시
+# -----------------------------------------------------------------------------
+# SQLite 데이터베이스
+*.db
+*.sqlite
+*.sqlite3
+/data/docs/processed_documents.db
+/data/docs/*.db
+
+# 캐시 디렉토리
+cache/
+.cache/
+tmp/
+temp/
+
+# AI/ML 관련 캐시
+# HuggingFace 캐시
+.cache/huggingface/
+transformers_cache/
+
+# Torch 캐시
+.cache/torch/
+
+# FAISS 인덱스 및 벡터 데이터
+# -----------------------------------------------------------------------------
+/data/faiss_index/
+/data/faiss_index/*.faiss
+/data/faiss_index/*.pkl
+/data/faiss_index/metadata.json
+/data/faiss_index/feedback.db
+
+# 전처리된 데이터
+# -----------------------------------------------------------------------------
+/data/docs/exported_json_chunks/
+/data/docs/processed_documents.db
+/data/docs/*.json
+!/data/docs/preprocess_config.json
+
+# 원본 문서 파일 (선택적)
+# 주석 해제 시 원본 문서도 제외
+# /data/docs/*.txt
+# /data/docs/*.pdf
+# /data/docs/*.docx
+# /data/docs/*.doc
+
+# 로그 파일
+# -----------------------------------------------------------------------------
+*.log
+logs/
+log/
+
+# 백업 파일
+# -----------------------------------------------------------------------------
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# 임시 파일
+# -----------------------------------------------------------------------------
+*.tmp
+*.temp
+*~
+
+# 테스트 관련
+# -----------------------------------------------------------------------------
+.coverage
+htmlcov/
+.pytest_cache/
+test-results/
+test_output/
+
+# 문서화
+# -----------------------------------------------------------------------------
+docs/_build/
+site/
+
+# 배포 관련
+# -----------------------------------------------------------------------------
+dist/
+build/
+*.egg-info/
+
+# 기타 프로젝트별 파일
+# -----------------------------------------------------------------------------
+# Bot Framework 관련
+*.bot.backup
+
+# 개발 중 생성되는 임시 파일
+scratch/
+playground/
+experiments/
+
+# 성능 프로파일링
+*.prof
+*.profile
+
+# 메모리 덤프
+*.dump
+*.dmp
+
+# 네트워크 캐시
+.requests-cache.sqlite
+
+# Jupyter 관련
+.ipynb_checkpoints/
+*.ipynb
+
+# 사용자 정의 제외 파일
+# -----------------------------------------------------------------------------
+# 개발자별 로컬 설정
+.local/
+personal/
+private/
+
+# 프로젝트 문서 (선택적)
+# 주석 해제 시 문서도 제외
+# *.md
+# *.rst
+# *.txt
