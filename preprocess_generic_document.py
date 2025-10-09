@@ -62,10 +62,12 @@ def create_faiss_index(db_path, faiss_index_path):
         # 임베딩 모델 로드
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         embeddings = HuggingFaceEmbeddings(
-            model_name="intfloat/multilingual-e5-large-instruct",
-            model_kwargs={'device': device},
+            model_name="intfloat/multilingual-e5-small",   # ← small로 교체 (빠르고 메모리 적음)
+            model_kwargs={'device': 'cpu'},
             encode_kwargs={'normalize_embeddings': True}
         )
+
+        
         
         documents = []
         with sqlite3.connect(db_path) as conn:
