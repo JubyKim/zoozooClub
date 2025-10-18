@@ -45,8 +45,25 @@ logger.info("[Startup] APP_TYPE=%s TENANT_ID=%s", MICROSOFT_APP_TYPE, MICROSOFT_
 #  어댑터 & 봇 설정
 # =========================
 if MICROSOFT_APP_ID and MICROSOFT_APP_PASSWORD:
-    adapter_settings = BotFrameworkAdapterSettings(MICROSOFT_APP_ID, MICROSOFT_APP_PASSWORD)
+    # 기존
+    # adapter_settings = BotFrameworkAdapterSettings(MICROSOFT_APP_ID, MICROSOFT_APP_PASSWORD)
+    # adapter = BotFrameworkAdapter(adapter_settings)
+
+    # 교체 (SingleTenant 대응)
+    from botbuilder.core import BotFrameworkAdapterSettings, BotFrameworkAdapter
+
+    SINGLE = (os.getenv("MicrosoftAppType", "SingleTenant").lower() == "singletenant")
+    TENANT = os.getenv("MicrosoftAppTenantId", "")
+
+    if MICROSOFT_APP_ID and MICROSOFT_APP_PASSWORD:
+        adapter_settings = BotFrameworkAdapterSettings(
+            MICROSOFT_APP_ID,
+            MICROSOFT_APP_PASSWORD,
+            channel_auth_tenant = TENANT if SINGLE and TENANT else None
+        )
     adapter = BotFrameworkAdapter(adapter_settings)
+else:
+    adapter = BotFrameworkAdapter(BotFrameworkAdapterSettings("", ""))
 else:
     logger.warning("MICROSOFT_APP_ID or MICROSOFT_APP_PASSWORD not set — running in local/emulator mode.")
     adapter = BotFrameworkAdapter(BotFrameworkAdapterSettings("", ""))
