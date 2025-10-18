@@ -1,142 +1,71 @@
-# app.py
+cat > ~/teams-bot/app.py <<'PY'
 import os
-import uvicorn
 import logging
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Response, status, HTTPException
-from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, TurnContext
-from botbuilder.schema import Activity
+from aiohttp import web
+from botbuilder.core import BotFrameworkAdapterSettings, BotFrameworkAdapter, TurnContext, ActivityHandler
+from botbuilder.schema import Activity, ActivityTypes
 
-from config import get_config
-from src.bot.activity_handler import MyBot
+APP_ID       = os.getenv("MicrosoftAppId", "")
+APP_PASSWORD = os.getenv("MicrosoftAppPassword", "")
+APP_TYPE     = os.getenv("MicrosoftAppType", "")
+APP_TENANT   = os.getenv("MicrosoftAppTenantId", "")
+PORT         = int(os.getenv("PORT", "3978"))
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - kyobo-dts-bot - %(levelname)s - %(message)s"
 )
-logger = logging.getLogger("kyobo-dts-bot")
+log = logging.getLogger("kyobo-dts-bot")
+log.info(f"[Startup] AppType={APP_TYPE} Tenant={APP_TENANT} Listening on 0.0.0.0:{PORT}")
 
-# 전역 인스턴스
-bot_instance = None
-adapter_instance = None
+settings = BotFrameworkAdapterSettings(APP_ID, APP_PASSWORD)
+if APP_TYPE and APP_TENANT:
+    settings.channel_service = None
+    settings.caller_id = None
+adapter = BotFrameworkAdapter(settings)
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """애플리케이션 생명주기 관리"""
-    global bot_instance, adapter_instance
-
-    # 설정 로드
-    config = get_config()
-    app_id = getattr(config, "APP_ID", "") or os.getenv("MICROSOFT_APP_ID", "")
-    app_password = getattr(config, "APP_PASSWORD", "") or os.getenv("MICROSOFT_APP_PASSWORD", "")
-    port = int(getattr(config, "PORT", os.getenv("PORT", 3978)))
-
-    if not app_id or not app_password:
-        logger.info(
-            "[Startup] MICROSOFT_APP_ID / PASSWORD 미설정: Bot Framework Emulator 로컬/테스트 모드로 동작합니다."
-        )
-        logger.info("          실제 Teams 연결 시에는 App ID/Password 가 반드시 필요합니다.")
-
-    settings = BotFrameworkAdapterSettings(app_id, app_password)
-    adapter_instance = BotFrameworkAdapter(settings)
-
-    async def on_error(context: TurnContext, error: Exception):
-        logger.error(f"[OnTurnError] {error}", exc_info=True)
-        try:
-            await context.send_activity("죄송합니다, 봇 처리 중 오류가 발생했습니다.")
-        except Exception:
-            # 응답 보낼 수 없는 상황은 조용히 패스
-            pass
-
-    adapter_instance.on_turn_error = on_error
-    bot_instance = MyBot()
-
-    logger.info("[Startup] Bot application started successfully")
-    logger.info(f"[Startup] Listening on 0.0.0.0:{port} (/api/messages)")
-
-    # 앱 상태 공유(필요시)
-    app.state.port = port
-
+async def on_error(context: TurnContext, error: Exception):
+    log.exception("on_turn_error: %s", error)
     try:
-        yield
-    finally:
-        # 종료 훅
-        if bot_instance and hasattr(bot_instance, "cleanup"):
-            try:
-                await bot_instance.cleanup()
-                logger.info("[Shutdown] Bot cleanup complete")
-            except Exception as e:
-                logger.warning(f"[Shutdown] cleanup 중 예외: {e}")
-        logger.info("[Shutdown] Bot application shutdown complete")
+        await context.send_activity("죄송해요. 내부 오류가 났어요.")
+    except Exception:
+        pass
+adapter.on_turn_error = on_error
 
+class EchoBot(ActivityHandler):
+    async def on_message_activity(self, turn_context: TurnContext):
+        text = turn_context.activity.text or ""
+        await turn_context.send_activity(f"echo: {text}")
 
-# FastAPI 앱 초기화
-app = FastAPI(
-    title="교보DTS 온보딩 멘토 AI Bot",
-    description="Microsoft Teams 온보딩 챗봇",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+    async def on_members_added_activity(self, members_added, turn_context: TurnContext):
+        await turn_context.send_activity("안녕하세요! 메시지를 보내보세요. 제가 똑같이 돌려드릴게요 :)")
 
+bot = EchoBot()
 
-@app.get("/")
-async def root():
-    return {
-        "service": "kyobo-dts-bot",
-        "status": "running",
-        "message": "POST /api/messages 로 Bot Framework 액티비티를 전송하세요.",
-    }
+routes = web.RouteTableDef()
 
+@routes.get("/healthz")
+async def healthz(_):
+    return web.Response(text="ok")
 
-@app.get("/health")
-async def health_check():
-    """헬스 체크 엔드포인트"""
-    return {"status": "healthy", "service": "kyobo-dts-bot"}
-
-
-@app.post("/api/messages")
-async def messages(request: Request):
-    """Bot Framework 메시지 처리 엔드포인트 (POST만 허용)"""
-    if not adapter_instance or not bot_instance:
-        raise HTTPException(status_code=503, detail="Bot not initialized")
-
-    # Content-Type 검증
-    content_type = request.headers.get("Content-Type", "")
-    if "application/json" not in content_type:
-        # Emulator/채널에서 JSON이 아닌 형식으로 올 경우를 방지
-        raise HTTPException(status_code=415, detail="Content-Type must be application/json")
-
+@routes.post("/api/messages")
+async def messages(request: web.Request):
     try:
+        auth_header = request.headers.get("Authorization", "")
         body = await request.json()
         activity = Activity().deserialize(body)
-        auth_header = request.headers.get("Authorization", "")
-
-        await adapter_instance.process_activity(activity, auth_header, bot_instance.on_turn)
-        # Bot Framework 표준: 202 Accepted
-        return Response(status_code=status.HTTP_202_ACCEPTED)
-
+        await adapter.process_activity(activity, auth_header, bot.on_turn)
+        return web.Response(status=200)
+    except PermissionError as e:
+        log.warning("Unauthorized: %s", e)
+        return web.Response(status=401, text="unauthorized")
     except Exception as e:
-        logger.error(f"[messages] processing error: {e}", exc_info=True)
-        # 요청 본문 문제면 400, 그 외에는 500으로 내보내도 됨
-        raise HTTPException(status_code=400, detail="Invalid request payload")
+        log.exception("Error handling request: %s", e)
+        return web.Response(status=500, text="internal-error")
 
+app = web.Application()
+app.add_routes(routes)
 
 if __name__ == "__main__":
-    # get_config() 또는 환경변수에서 포트/호스트 로드
-    try:
-        _cfg = get_config()
-        _port = int(getattr(_cfg, "PORT", os.getenv("PORT", 3978)))
-    except Exception:
-        _port = int(os.getenv("PORT", 3978))
-
-    # 외부 접속 가능하도록 host="0.0.0.0"
-    uvicorn.run(
-        "app:app",
-        host="0.0.0.0",
-        port=_port,
-        reload=False,          # 서버에서 reload는 보통 비활성화
-        log_level="info",
-        access_log=True,
-    )
+    web.run_app(app, host="0.0.0.0", port=PORT)
+PY
