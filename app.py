@@ -62,10 +62,8 @@ if MICROSOFT_APP_ID and MICROSOFT_APP_PASSWORD:
             channel_auth_tenant = TENANT if SINGLE and TENANT else None
         )
     adapter = BotFrameworkAdapter(adapter_settings)
-
     
-    else :
-        adapter = BotFrameworkAdapter(BotFrameworkAdapterSettings("", ""))
+    else : adapter = BotFrameworkAdapter(BotFrameworkAdapterSettings("", ""))
 else:
     logger.warning("MICROSOFT_APP_ID or MICROSOFT_APP_PASSWORD not set — running in local/emulator mode.")
     adapter = BotFrameworkAdapter(BotFrameworkAdapterSettings("", ""))
