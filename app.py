@@ -1,63 +1,120 @@
-import os, logging
-from aiohttp import web
-from botbuilder.core import BotFrameworkAdapterSettings, BotFrameworkAdapter, TurnContext, ActivityHandler
-from botbuilder.schema import Activity, ActivityTypes
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-APP_ID       = os.getenv("MicrosoftAppId", "")
-APP_PASSWORD = os.getenv("MicrosoftAppPassword", "")
-APP_TYPE     = os.getenv("MicrosoftAppType", "")
-APP_TENANT   = os.getenv("MicrosoftAppTenantId", "")
-PORT         = int(os.getenv("PORT", "3978"))
+"""
+Kyobo DTS Teams Bot (Final Version)
+====================================
+FastAPI + BotBuilder SDK + Nginx reverse proxy
+"""
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - kyobo-dts-bot - %(levelname)s - %(message)s")
-log = logging.getLogger("kyobo-dts-bot")
-mask = lambda s: (s[:4] + "..." + s[-4:]) if s else "-"
-log.info(f"[Startup] AppId={mask(APP_ID)} Type={APP_TYPE or '-'} Tenant={APP_TENANT or '-'} Port={PORT}")
+import os
+import logging
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
+from botbuilder.core import (
+    BotFrameworkAdapterSettings,
+    BotFrameworkAdapter,
+    TurnContext,
+)
+from botbuilder.schema import Activity
+from dotenv import load_dotenv
 
-# Adapter 설정 + OAuth 스코프 명시(아주 중요)
-settings = BotFrameworkAdapterSettings(APP_ID, APP_PASSWORD)
-# 공용 Azure Bot Service용 표준 스코프
-settings.oauth_scope = "https://api.botframework.com/.default"
-adapter = BotFrameworkAdapter(settings)
+# =========================
+#  환경 변수 로드
+# =========================
+load_dotenv()
 
-async def on_error(ctx: TurnContext, err: Exception):
-    log.exception("on_turn_error: %s", err)
-    try:
-        await ctx.send_activity("죄송해요. 내부 오류가 발생했어요.")
-    except Exception:
-        pass
+MICROSOFT_APP_ID = os.getenv("MICROSOFT_APP_ID", "")
+MICROSOFT_APP_PASSWORD = os.getenv("MICROSOFT_APP_PASSWORD", "")
+MICROSOFT_APP_TYPE = os.getenv("MicrosoftAppType", "SingleTenant")
+MICROSOFT_TENANT_ID = os.getenv("MicrosoftAppTenantId", "")
+
+# =========================
+#  로깅 설정
+# =========================
+logging.basicConfig(
+    format="%(asctime)s - kyobo-dts-bot - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger("kyobo-dts-bot")
+
+logger.info("[Startup] MICROSOFT_APP_ID: %s", MICROSOFT_APP_ID or "(not set)")
+logger.info("[Startup] APP_TYPE=%s TENANT_ID=%s", MICROSOFT_APP_TYPE, MICROSOFT_TENANT_ID)
+
+# =========================
+#  어댑터 & 봇 설정
+# =========================
+if MICROSOFT_APP_ID and MICROSOFT_APP_PASSWORD:
+    adapter_settings = BotFrameworkAdapterSettings(MICROSOFT_APP_ID, MICROSOFT_APP_PASSWORD)
+    adapter = BotFrameworkAdapter(adapter_settings)
+else:
+    logger.warning("MICROSOFT_APP_ID or MICROSOFT_APP_PASSWORD not set — running in local/emulator mode.")
+    adapter = BotFrameworkAdapter(BotFrameworkAdapterSettings("", ""))
+
+# 전역 에러 핸들러
+async def on_error(context: TurnContext, error: Exception):
+    logger.error(f"on_turn_error: {error}", exc_info=True)
+    await context.send_activity("⚠️ 봇 실행 중 오류가 발생했습니다. 로그를 확인하세요.")
+
 adapter.on_turn_error = on_error
 
-class EchoBot(ActivityHandler):
-    async def on_message_activity(self, turn_context: TurnContext):
-        await turn_context.send_activity(f"echo: {turn_context.activity.text or ''}")
-    async def on_members_added_activity(self, members_added, turn_context: TurnContext):
-        await turn_context.send_activity("안녕하세요! 메시지를 보내면 그대로 돌려드려요 :)")
 
-bot = EchoBot()
+# =========================
+#  봇 로직 (간단 예제)
+# =========================
+class KyoboDTSBot:
+    async def on_turn(self, turn_context: TurnContext):
+        if turn_context.activity.type == "message":
+            text = turn_context.activity.text.strip().lower()
+            logger.info(f"[User Message] {text}")
+            if text in ["hi", "hello", "안녕", "ㅎㅇ"]:
+                await turn_context.send_activity("안녕하세요, 교보DTS 봇입니다 😊")
+            elif "시간" in text:
+                import datetime
+                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                await turn_context.send_activity(f"현재 서버 시각은 {now} 입니다.")
+            elif "help" in text or "도움" in text:
+                await turn_context.send_activity("명령어 목록:\n- 안녕\n- 시간\n- help")
+            else:
+                await turn_context.send_activity(f"'{text}' 명령은 아직 지원되지 않습니다.")
+        else:
+            logger.info(f"[System Event] {turn_context.activity.type}")
 
-routes = web.RouteTableDef()
-@routes.get("/healthz")
-async def healthz(_): return web.Response(text="ok")
+bot = KyoboDTSBot()
 
-@routes.post("/api/messages")
-async def messages(request: web.Request):
-    auth_header = request.headers.get("Authorization", "")
-    body = await request.json()
-    activity = Activity().deserialize(body)
+
+# =========================
+#  FastAPI 서버
+# =========================
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    """Health check"""
+    return {"status": "ok", "app_id": MICROSOFT_APP_ID or "local"}
+
+
+@app.post("/api/messages")
+async def messages(req: Request) -> Response:
+    """봇 메시지 처리 엔드포인트"""
     try:
+        body = await req.json()
+        activity = Activity().deserialize(body)
+        auth_header = req.headers.get("Authorization", "")
+        logger.info(f"[Activity] from={activity.from_property.id if activity.from_property else 'unknown'} "
+                    f"type={activity.type}")
         await adapter.process_activity(activity, auth_header, bot.on_turn)
-        return web.Response(status=200)
-    except PermissionError as e:
-        log.warning("Unauthorized: %s", e)
-        return web.Response(status=401, text="unauthorized")
+        return Response(status_code=201)
     except Exception as e:
-        log.exception("Error handling /api/messages: %s", e)
-        return web.Response(status=500, text="internal-error")
+        logger.error("Error in /api/messages", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
-app = web.Application()
-app.add_routes(routes)
 
+# =========================
+#  서버 실행
+# =========================
 if __name__ == "__main__":
-    log.info("Listening on 0.0.0.0:%s", PORT)
-    web.run_app(app, host="0.0.0.0", port=PORT)
+    import uvicorn
+
+    logger.info("Uvicorn starting on http://0.0.0.0:3978")
+    uvicorn.run("app:app", host="0.0.0.0", port=3978, reload=False)
