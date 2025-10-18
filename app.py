@@ -20,7 +20,7 @@ from botbuilder.schema import Activity
 from dotenv import load_dotenv
 
 # =========================
-#  환경 변수 로드
+#  환경 변수 로드에요잉
 # =========================
 load_dotenv()
 
